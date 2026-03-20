@@ -1,10 +1,3 @@
-"""
-AST nodes for the BrainFuck compiler.
-
-Every node stores the source position (pos) for error reporting.
-ProgramNode and LoopNode are composite nodes that hold child nodes.
-"""
-
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
@@ -12,7 +5,6 @@ from typing import List
 
 @dataclass
 class ProgramNode:
-    """Root node of the AST — wraps the entire program."""
     children: List[object] = field(default_factory=list)
 
     def __repr__(self) -> str:
@@ -21,9 +13,8 @@ class ProgramNode:
 
 @dataclass
 class LoopNode:
-    """[...] loop construct."""
     children: List[object]
-    pos: int  # position of the opening '['
+    pos: int
 
     def __repr__(self) -> str:
         return f"LoopNode(pos={self.pos}, children={self.children!r})"
@@ -31,7 +22,6 @@ class LoopNode:
 
 @dataclass
 class IncrNode:
-    """'+' — increment the current cell."""
     pos: int
 
     def __repr__(self) -> str:
@@ -40,7 +30,6 @@ class IncrNode:
 
 @dataclass
 class DecrNode:
-    """'-' — decrement the current cell."""
     pos: int
 
     def __repr__(self) -> str:
@@ -49,7 +38,6 @@ class DecrNode:
 
 @dataclass
 class MoveRNode:
-    """'>' — move the data pointer one cell to the right."""
     pos: int
 
     def __repr__(self) -> str:
@@ -58,7 +46,6 @@ class MoveRNode:
 
 @dataclass
 class MoveLNode:
-    """'<' — move the data pointer one cell to the left."""
     pos: int
 
     def __repr__(self) -> str:
@@ -67,7 +54,6 @@ class MoveLNode:
 
 @dataclass
 class OutputNode:
-    """'.' — output the byte at the current cell."""
     pos: int
 
     def __repr__(self) -> str:
@@ -76,7 +62,6 @@ class OutputNode:
 
 @dataclass
 class InputNode:
-    """',' — read one byte into the current cell."""
     pos: int
 
     def __repr__(self) -> str:
