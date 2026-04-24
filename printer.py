@@ -27,8 +27,14 @@ def print_ast(node, prefix: str = "", is_last: bool = True) -> None:
     
     symbol = _NODE_SYMBOLS.get(type(node), "")
     name = type(node).__name__
+    
+    # Добавляем вывод count, если он есть и больше 1
+    count_str = ""
+    if hasattr(node, 'count') and node.count > 1:
+        count_str = f" x{node.count}"
+        
     if symbol:
-        name = f"{name} ({symbol})"
+        name = f"{name} ({symbol}){count_str}"
         
     pos = f" (pos={node.pos})"
 

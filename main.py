@@ -18,25 +18,28 @@ def main() -> None:
     
     args = parser.parse_args()
 
-    # Чтение исходника
     try:
-        with open(args.input, "r", encoding="utf-8") as f:
+        with open(args.input, "r", encoding="utf-8-sig") as f:
             source = f.read()
+    except UnicodeDecodeError:
+        try:
+            with open(args.input, "r", encoding="cp1251") as f:
+                source = f.read()
+        except Exception as e:
+            print(f"Ошибка чтения файла: {e}")
+            sys.exit(1)
     except FileNotFoundError:
         print(f"Ошибка: Файл '{args.input}' не найден")
         sys.exit(1)
 
-    # 1. Лексер
     tokens = tokenize(source)
 
-    # 2. Парсер
     try:
         tree = parse(tokens)
     except SyntaxError as e:
         print(f"Ошибка синтаксиса: {e}")
         sys.exit(1)
 
-    # 3. Семантический анализ
     reports = analyse(tree)
     has_errors = False
     for msg in reports:
@@ -48,16 +51,13 @@ def main() -> None:
         print("Компиляция прервана из-за семантических ошибок.")
         sys.exit(1)
 
-    # 4. Оптимизация
     tree = optimize(tree)
 
-    # 5. Принтер (если нужно)
     if args.ast:
         print("\n--- Оптимизированное AST ---")
         print_ast(tree)
         print("----------------------------\n")
 
-    # 6. Генератор кода
     code = generate(tree)
     
     with open(args.output, "w", encoding="utf-8") as f:
