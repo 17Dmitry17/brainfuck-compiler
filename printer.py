@@ -1,15 +1,35 @@
 from __future__ import annotations
-from ast_nodes import ProgramNode, LoopNode
+import sys
+from ast_nodes import ProgramNode, LoopNode, IncrNode, DecrNode, MoveRNode, MoveLNode, OutputNode, InputNode
+
+# Настройка кодировки для корректного вывода в Windows
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+
+_NODE_SYMBOLS = {
+    IncrNode: "+",
+    DecrNode: "-",
+    MoveRNode: ">",
+    MoveLNode: "<",
+    OutputNode: ".",
+    InputNode: ",",
+    LoopNode: "[]",
+}
 
 def print_ast(node, prefix: str = "", is_last: bool = True) -> None:
     if isinstance(node, ProgramNode):
         print("Program")
         for i, child in enumerate(node.children):
-            print_ast(child, prefix="", is_last=(i == len(node.children) - 1))
+            print_ast(child, prefix="    ", is_last=(i == len(node.children) - 1))
         return
 
     connector = "└── " if is_last else "├── "
+    
+    symbol = _NODE_SYMBOLS.get(type(node), "")
     name = type(node).__name__
+    if symbol:
+        name = f"{name} ({symbol})"
+        
     pos = f" (pos={node.pos})"
 
     print(f"{prefix}{connector}{name}{pos}")
