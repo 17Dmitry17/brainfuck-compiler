@@ -3,72 +3,67 @@ import sys
 import argparse
 from lexer import tokenize
 from parser import parse
+from semantic import analyse
+from optimizer import optimize
 from printer import print_ast
 from codegen import generate
 
-def compile_brainfuck(input_path: str, output_path: str, show_ast: bool) -> None:
-    """Оркестратор процесса компиляции."""
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="BF-Compiler: Полный цикл компиляции Brainfuck"
+    )
+    parser.add_argument("input", help="Исходный файл .bf")
+    parser.add_argument("-o", "--output", default="out.py", help="Выходной Python файл")
+    parser.add_argument("--ast", action="store_true", help="Показать AST дерево")
+    
+    args = parser.parse_args()
+
+    # Чтение исходника
     try:
-        with open(input_path, "r", encoding="utf-8") as f:
+        with open(args.input, "r", encoding="utf-8") as f:
             source = f.read()
     except FileNotFoundError:
-        print(f"[-] Ошибка: Файл '{input_path}' не найден.")
+        print(f"Ошибка: Файл '{args.input}' не найден")
         sys.exit(1)
 
-    print(f"[*] Чтение файла: {input_path}")
-    
-    # 1. Лексический анализ
+    # 1. Лексер
     tokens = tokenize(source)
-    print(f"[*] Токенизация завершена. Найдено команд: {len(tokens)}")
 
-    # 2. Синтаксический анализ
+    # 2. Парсер
     try:
         tree = parse(tokens)
     except SyntaxError as e:
-        print(f"[-] Синтаксическая ошибка: {e}")
+        print(f"Ошибка синтаксиса: {e}")
         sys.exit(1)
-    print("[*] AST дерево успешно построено.")
 
-    # 3. Визуализация (по желанию)
-    if show_ast:
-        print("\n--- СТРУКТУРА AST ---")
+    # 3. Семантический анализ
+    reports = analyse(tree)
+    has_errors = False
+    for msg in reports:
+        print(msg)
+        if msg.startswith("Ошибка"):
+            has_errors = True
+    
+    if has_errors:
+        print("Компиляция прервана из-за семантических ошибок.")
+        sys.exit(1)
+
+    # 4. Оптимизация
+    tree = optimize(tree)
+
+    # 5. Принтер (если нужно)
+    if args.ast:
+        print("\n--- Оптимизированное AST ---")
         print_ast(tree)
-        print("---------------------\n")
+        print("----------------------------\n")
 
-    # 4. Генерация кода
-    print(f"[*] Генерация исполняемого кода...")
+    # 6. Генератор кода
     code = generate(tree)
     
-    try:
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(code)
-        print(f"[+] Успех! Скомпилированный код сохранен в: {output_path}")
-    except IOError as e:
-        print(f"[-] Ошибка при записи файла: {e}")
-        sys.exit(1)
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="BF-Compiler: Транслятор Brainfuck в исполняемый Python-код"
-    )
-    parser.add_argument("input", help="Путь к исходному файлу .bf")
-    parser.add_argument(
-        "-o", "--output", 
-        default="compiled.py", 
-        help="Путь для сохранения результата (по умолчанию: compiled.py)"
-    )
-    parser.add_argument(
-        "--ast", 
-        action="store_true", 
-        help="Вывести AST дерево в консоль"
-    )
+    with open(args.output, "w", encoding="utf-8") as f:
+        f.write(code)
     
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
-        
-    args = parser.parse_args()
-    compile_brainfuck(args.input, args.output, args.ast)
+    print(f"Готово! Результат сохранен в {args.output}")
 
 if __name__ == "__main__":
     main()
