@@ -23,33 +23,37 @@ class LoopNode:
 @dataclass
 class IncrNode:
     pos: int
+    count: int = 1
 
     def __repr__(self) -> str:
-        return f"IncrNode(pos={self.pos})"
+        return f"IncrNode(pos={self.pos}, count={self.count})"
 
 
 @dataclass
 class DecrNode:
     pos: int
+    count: int = 1
 
     def __repr__(self) -> str:
-        return f"DecrNode(pos={self.pos})"
+        return f"DecrNode(pos={self.pos}, count={self.count})"
 
 
 @dataclass
 class MoveRNode:
     pos: int
+    count: int = 1
 
     def __repr__(self) -> str:
-        return f"MoveRNode(pos={self.pos})"
+        return f"MoveRNode(pos={self.pos}, count={self.count})"
 
 
 @dataclass
 class MoveLNode:
     pos: int
+    count: int = 1
 
     def __repr__(self) -> str:
-        return f"MoveLNode(pos={self.pos})"
+        return f"MoveLNode(pos={self.pos}, count={self.count})"
 
 
 @dataclass
