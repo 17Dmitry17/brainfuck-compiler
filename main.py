@@ -6,47 +6,69 @@ from parser import parse
 from printer import print_ast
 from codegen import generate
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Brainfuck Compiler")
-    parser.add_argument("input", help="Input .bf file")
-    parser.add_argument("-o", "--output", help="Output .py file", default="out.py")
-    parser.add_argument("--no-ast", action="store_true", help="Don't print AST")
-    
-    args = parser.parse_args()
-
+def compile_brainfuck(input_path: str, output_path: str, show_ast: bool) -> None:
+    """Оркестратор процесса компиляции."""
     try:
-        with open(args.input, "r", encoding="utf-8") as f:
+        with open(input_path, "r", encoding="utf-8") as f:
             source = f.read()
     except FileNotFoundError:
-        print(f"Error: File '{args.input}' not found")
+        print(f"[-] Ошибка: Файл '{input_path}' не найден.")
         sys.exit(1)
 
-    # 1. Токенизация
+    print(f"[*] Чтение файла: {input_path}")
+    
+    # 1. Лексический анализ
     tokens = tokenize(source)
+    print(f"[*] Токенизация завершена. Найдено команд: {len(tokens)}")
 
-    # 2. Парсинг
+    # 2. Синтаксический анализ
     try:
         tree = parse(tokens)
     except SyntaxError as e:
-        print(f"Syntax Error: {e}")
+        print(f"[-] Синтаксическая ошибка: {e}")
         sys.exit(1)
+    print("[*] AST дерево успешно построено.")
 
-    # 3. Вывод AST
-    if not args.no_ast:
-        print("AST Structure:")
+    # 3. Визуализация (по желанию)
+    if show_ast:
+        print("\n--- СТРУКТУРА AST ---")
         print_ast(tree)
-        print("-" * 20)
+        print("---------------------\n")
 
     # 4. Генерация кода
+    print(f"[*] Генерация исполняемого кода...")
     code = generate(tree)
     
     try:
-        with open(args.output, "w", encoding="utf-8") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(code)
-        print(f"Success! Python code generated in '{args.output}'")
+        print(f"[+] Успех! Скомпилированный код сохранен в: {output_path}")
     except IOError as e:
-        print(f"Error writing to file: {e}")
+        print(f"[-] Ошибка при записи файла: {e}")
         sys.exit(1)
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="BF-Compiler: Транслятор Brainfuck в исполняемый Python-код"
+    )
+    parser.add_argument("input", help="Путь к исходному файлу .bf")
+    parser.add_argument(
+        "-o", "--output", 
+        default="compiled.py", 
+        help="Путь для сохранения результата (по умолчанию: compiled.py)"
+    )
+    parser.add_argument(
+        "--ast", 
+        action="store_true", 
+        help="Вывести AST дерево в консоль"
+    )
+    
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(0)
+        
+    args = parser.parse_args()
+    compile_brainfuck(args.input, args.output, args.ast)
 
 if __name__ == "__main__":
     main()
